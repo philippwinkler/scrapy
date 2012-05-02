@@ -5,7 +5,7 @@ See documentation in topics/images.rst
 """
 
 from __future__ import with_statement
-import os
+import os,stat
 import time
 import hashlib
 import urlparse
@@ -50,6 +50,7 @@ class FSImagesStore(object):
         absolute_path = self._get_filesystem_path(key)
         self._mkdir(os.path.dirname(absolute_path), info)
         image.save(absolute_path)
+        os.chmod(absolute_path,stat.S_IROTH)
 
     def stat_image(self, key, info):
         absolute_path = self._get_filesystem_path(key)
@@ -264,17 +265,41 @@ class ImagesPipeline(MediaPipeline):
             raise ImageException("Image too small (%dx%d < %dx%d): %s" % \
                     (width, height, self.MIN_WIDTH, self.MIN_HEIGHT, response.url))
 
+        #square_image = self.square_image(orig_image)
+        #image, buf = self.convert_image(square_image)
+        #yield key, image, buf
+
+        #for thumb_id, size in self.THUMBS.iteritems():
+        #    thumb_key = self.thumb_key(request.url, thumb_id)
+        #    thumb_image, thumb_buf = self.convert_image(image, size)
+        #    yield thumb_key, thumb_image, thumb_buf
+
+        #PW Don't square full size images.
+        square_image = self.square_image(orig_image)
         image, buf = self.convert_image(orig_image)
+        print "IMAGE SIZE:", image.size
         yield key, image, buf
 
         for thumb_id, size in self.THUMBS.iteritems():
             thumb_key = self.thumb_key(request.url, thumb_id)
-            thumb_image, thumb_buf = self.convert_image(image, size)
+            thumb_image, thumb_buf = self.convert_image(square_image, size)
             yield thumb_key, thumb_image, thumb_buf
 
     def inc_stats(self, spider, status):
         stats.inc_value('image_count', spider=spider)
         stats.inc_value('image_status_count/%s' % status, spider=spider)
+
+    def square_image(self, image):
+        maxsize = max(image.size)
+        newsize = maxsize, maxsize
+        x1,y1 = image.size
+        x2,y2 = newsize
+        box = (x2 - x1)/2, (y2-y1)/2
+        log.msg('Old size %s, new size %s, box %s' % (image.size,newsize,box))
+        background = Image.new('RGBA', newsize, (255, 255, 255))
+        background.paste(image, box)
+        return background.convert('RGB')
+
 
     def convert_image(self, image, size=None):
         if image.format == 'PNG' and image.mode == 'RGBA':
