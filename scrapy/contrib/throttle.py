@@ -68,20 +68,26 @@ class AutoThrottle(object):
         self.START_DELAY = settings.getfloat("AUTOTHROTTLE_START_DELAY", 5.0)
         self.CONCURRENCY_CHECK_PERIOD = settings.getint("AUTOTHROTTLE_CONCURRENCY_CHECK_PERIOD", 10)
         self.MAX_CONCURRENCY = settings.getint("AUTOTHROTTLE_MAX_CONCURRENCY", 8)
-        self.DEBUG = settings.getint("AUTOTHROTTLE_DEBUG", False)
+        self.DEBUG = settings.getbool("AUTOTHROTTLE_DEBUG")
+        self.MIN_DOWNLOAD_DELAY = settings.getint("AUTOTHROTTLE_MIN_DOWNLOAD_DELAY")
+        self.last_latencies = [self.START_DELAY]
+        self.last_lat = self.START_DELAY, 0.0
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(crawler)
 
     def spider_opened(self, spider):
+        if hasattr(spider, "download_delay"):
+            self.MIN_DOWNLOAD_DELAY = spider.download_delay
         spider.download_delay = self.START_DELAY
+        if hasattr(spider, "max_concurrent_requests"):
+            self.MAX_CONCURRENCY = spider.max_concurrent_requests
+        # override in order to avoid to initialize slot with concurrency > 1
         spider.max_concurrent_requests = 1
-        self.last_latencies = [self.START_DELAY]
-        self.last_lat = self.START_DELAY, 0.0
-        
+
     def response_received(self, response, spider):
-        slot = self._get_slot(response.request)
+        key, slot = self._get_slot(response.request)
         latency = response.meta.get('download_latency')
         
         if not latency or not slot:
@@ -91,8 +97,8 @@ class AutoThrottle(object):
         self._check_concurrency(slot, latency)
 
         if self.DEBUG:
-            spider.log("conc:%2d | delay:%5d ms | latency:%5d ms | size:%6d bytes" % \
-                (slot.concurrency, slot.delay*1000, \
+            spider.log("slot: %s | conc:%2d | delay:%5d ms | latency:%5d ms | size:%6d bytes" % \
+                (key, slot.concurrency, slot.delay*1000, \
                 latency*1000, len(response.body)))
 
     def _get_slot(self, request):
@@ -100,7 +106,7 @@ class AutoThrottle(object):
         key = urlparse_cached(request).hostname or ''
         if downloader.ip_concurrency:
             key = dnscache.get(key, key)
-        return downloader.slots.get(key)
+        return key, downloader.slots.get(key) or downloader.inactive_slots.get(key)
 
     def _check_concurrency(self, slot, latency):
         latencies = self.last_latencies
@@ -120,6 +126,9 @@ class AutoThrottle(object):
         """Define delay adjustment policy"""
         # if latency is bigger than old delay, then use latency instead of mean. Works better with problematic sites
         new_delay = (slot.delay + latency) / 2.0 if latency < slot.delay else latency
+
+        if new_delay < self.MIN_DOWNLOAD_DELAY:
+            new_delay = self.MIN_DOWNLOAD_DELAY
 
         # dont adjust delay if response status != 200 and new delay is smaller than old one,
         # as error pages (and redirections) are usually small and so tend to reduce latency, thus provoking a positive feedback

@@ -1,20 +1,25 @@
 """
-Extensions for debugging Scrapy 
+Extensions for debugging Scrapy
 
 See documentation in docs/topics/extensions.rst
 """
 
-import os
+import sys
 import signal
 import traceback
+import threading
 from pdb import Pdb
 
 from scrapy.utils.engine import format_engine_status
+from scrapy.utils.trackref import format_live_refs
 from scrapy import log
 
 
 class StackTraceDump(object):
-    def __init__(self):
+
+    def __init__(self, crawler=None):
+        self.crawler = crawler
+        self.dumprefs = crawler.settings.getbool('TRACK_REFS')
         try:
             signal.signal(signal.SIGUSR2, self.dump_stacktrace)
             signal.signal(signal.SIGQUIT, self.dump_stacktrace)
@@ -22,12 +27,26 @@ class StackTraceDump(object):
             # win32 platforms don't support SIGUSR signals
             pass
 
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
     def dump_stacktrace(self, signum, frame):
-        msg = "Dumping stack trace and engine status" + os.linesep
-        msg += "".join(traceback.format_stack(frame))
-        msg += os.linesep
-        msg += format_engine_status()
+        stackdumps = self._thread_stacks()
+        enginestatus = format_engine_status(self.crawler.engine)
+        liverefs = format_live_refs() if self.dumprefs else ""
+        msg = "Dumping stack trace and engine status" \
+            "\n{0}\n{1}\n{2}".format(enginestatus, liverefs, stackdumps)
         log.msg(msg)
+
+    def _thread_stacks(self):
+        id2name = dict((th.ident, th.name) for th in threading.enumerate())
+        dumps = ''
+        for id_, frame in sys._current_frames().items():
+            name = id2name.get(id_, '')
+            dump = ''.join(traceback.format_stack(frame))
+            dumps += "# Thread: {0}({1})\n{2}\n".format(name, id_, dump)
+        return dumps
 
 
 class Debugger(object):

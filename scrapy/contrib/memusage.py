@@ -41,7 +41,7 @@ class MemoryUsage(object):
         return cls(crawler)
 
     def get_virtual_size(self):
-        return get_vmvalue_from_procfs('VmSize')
+        return get_vmvalue_from_procfs('VmRSS')
 
     def engine_started(self):
         stats.set_value('memusage/startup', self.get_virtual_size())
@@ -76,7 +76,12 @@ class MemoryUsage(object):
                         (self.crawler.settings['BOT_NAME'], mem, socket.gethostname())
                 self._send_report(self.notify_mails, subj)
                 stats.set_value('memusage/limit_notified', 1)
-            self.crawler.stop()
+            open_spiders = self.crawler.engine.open_spiders
+            if open_spiders:
+                for spider in open_spiders:
+                    self.crawler.engine.close_spider(spider, 'memusage_exceeded')
+            else:
+                self.crawler.stop()
 
     def _check_warning(self):
         if self.warned: # warn only once
@@ -100,6 +105,6 @@ class MemoryUsage(object):
 
         s += "ENGINE STATUS ------------------------------------------------------- \r\n"
         s += "\r\n"
-        s += pformat(get_engine_status())
+        s += pformat(get_engine_status(self.crawler.engine))
         s += "\r\n"
         self.mail.send(rcpts, subject, s)

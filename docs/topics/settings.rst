@@ -222,16 +222,6 @@ also for logging.
 It's automatically populated with your project name when you create your
 project with the :command:`startproject` command.
 
-.. setting:: BOT_VERSION
-
-BOT_VERSION
------------
-
-Default: ``1.0``
-
-The version of the bot implemented by this Scrapy project. This will be used to
-construct the User-Agent by default.
-
 .. setting:: CONCURRENT_ITEMS
 
 CONCURRENT_ITEMS
@@ -883,18 +873,6 @@ Example::
 
     SPIDER_MODULES = ['mybot.spiders_prod', 'mybot.spiders_dev']
 
-.. setting:: SQLITE_DB
-
-SQLITE_DB
----------
-
-Default: ``'scrapy.db'``
-
-The location of the project SQLite database, used for storing the spider queue
-and other persistent data of the project. If a relative path is given, is taken
-relative to the project data dir. For more info see:
-:ref:`topics-project-structure`.
-
 .. setting:: STATS_CLASS
 
 STATS_CLASS
@@ -985,7 +963,7 @@ the default value for this setting see: http://www.boutell.com/newfaq/misc/urlle
 USER_AGENT
 ----------
 
-Default: ``"%s/%s" % (BOT_NAME, BOT_VERSION)``
+Default: ``"Scrapy/0.15 (+http://scrapy.org)"``
 
 The default User-Agent to use when crawling, unless overridden. 
 

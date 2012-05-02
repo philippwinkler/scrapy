@@ -9,6 +9,7 @@ from twisted.internet import defer
 from scrapy.http import Headers
 from scrapy.utils.httpobj import urlparse_cached
 from scrapy.responsetypes import responsetypes
+from scrapy import optional_features
 
 
 def _parsed_url_args(parsed):
@@ -98,6 +99,14 @@ class ScrapyHTTPClientFactory(HTTPClientFactory):
         self.start_time = time()
         self.deferred = defer.Deferred().addCallback(self._build_response, request)
 
+        # Fixes Twisted 11.1.0+ support as HTTPClientFactory is expected
+        # to have _disconnectedDeferred. See Twisted r32329.
+        # As Scrapy implements it's own logic to handle redirects is not
+        # needed to add the callback _waitForDisconnect.
+        # Specifically this avoids the AttributeError exception when
+        # clientConnectionFailed method is called.
+        self._disconnectedDeferred = defer.Deferred()
+
         self._set_connection_attributes(request)
 
         # set Host header based on url
@@ -127,3 +136,24 @@ class ScrapyHTTPClientFactory(HTTPClientFactory):
     def gotHeaders(self, headers):
         self.headers_time = time()
         self.response_headers = headers
+
+
+
+if 'ssl' in optional_features:
+    from twisted.internet.ssl import ClientContextFactory
+    from OpenSSL import SSL
+else:
+    ClientContextFactory = object
+
+
+class ScrapyClientContextFactory(ClientContextFactory):
+    "A SSL context factory which is more permissive against SSL bugs."
+    # see https://github.com/scrapy/scrapy/issues/82
+    # and https://github.com/scrapy/scrapy/issues/26
+
+    def getContext(self):
+        ctx = ClientContextFactory.getContext(self)
+        # Enable all workarounds to SSL bugs as documented by
+        # http://www.openssl.org/docs/ssl/SSL_CTX_set_options.html
+        ctx.set_options(SSL.OP_ALL)
+        return ctx

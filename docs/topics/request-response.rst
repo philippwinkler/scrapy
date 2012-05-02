@@ -54,7 +54,7 @@ Request objects
     :param cookies: the request cookies. Example::
 
             request_with_cookies = Request(url="http://www.example.com",
-                                           cookies={currency: 'USD', country: 'UY'})
+                                           cookies={'currency': 'USD', 'country': 'UY'})
 
         When some site returns cookies (in a response) those are stored in the
         cookies for that domain and will be sent again in future requests. That's
@@ -66,7 +66,7 @@ Request objects
         Example of request without merging cookies::
 
             request_with_cookies = Request(url="http://www.example.com",
-                                           cookies={currency: 'USD', country: 'UY'},
+                                           cookies={'currency': 'USD', 'country': 'UY'},
                                            meta={'dont_merge_cookies': True})
 
         For more info see :ref:`cookies-mw`.
@@ -149,7 +149,7 @@ Request objects
        Return a new Request which is a copy of this Request. See also:
        :ref:`topics-request-response-ref-request-callback-arguments`.
 
-    .. method:: Request.replace([url, callback, method, headers, body, cookies, meta, encoding, dont_filter, callback, errback])
+    .. method:: Request.replace([url, method, headers, body, cookies, meta, encoding, dont_filter, callback, errback])
 
        Return a Request object with the same members, except for those members
        given new values by whichever keyword arguments are specified. The
@@ -210,6 +210,7 @@ Those are:
 * :reqmeta:`dont_retry`
 * :reqmeta:`handle_httpstatus_list`
 * ``dont_merge_cookies`` (see ``cookies`` parameter of :class:`Request` constructor)
+* :reqmeta:`cookiejar`
 * :reqmeta:`redirect_urls`
 
 .. _topics-request-response-ref-request-subclasses:

@@ -4,17 +4,16 @@ Images Pipeline
 See documentation in topics/images.rst
 """
 
-from __future__ import with_statement
-import os,stat
+import os
 import time
 import hashlib
 import urlparse
 import rfc822
-import Image
 from cStringIO import StringIO
 from collections import defaultdict
 
 from twisted.internet import defer, threads
+from PIL import Image
 
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import log
@@ -103,7 +102,9 @@ class S3ImagesStore(object):
 
     def _get_boto_bucket(self):
         from boto.s3.connection import S3Connection
-        c = S3Connection(self.AWS_ACCESS_KEY_ID, self.AWS_SECRET_ACCESS_KEY)
+        # disable ssl (is_secure=False) because of this python bug:
+        # http://bugs.python.org/issue5103
+        c = S3Connection(self.AWS_ACCESS_KEY_ID, self.AWS_SECRET_ACCESS_KEY, is_secure=False)
         return c.get_bucket(self.bucket, validate=False)
 
     def _get_boto_key(self, key):
@@ -248,13 +249,13 @@ class ImagesPipeline(MediaPipeline):
         return dfd
 
     def image_downloaded(self, response, request, info):
-        first_buf = None
+        checksum = None
         for key, image, buf in self.get_images(response, request, info):
+            if checksum is None:
+                buf.seek(0)
+                checksum = md5sum(buf)
             self.store.persist_image(key, image, buf, info)
-            if first_buf is None:
-                first_buf = buf
-        first_buf.seek(0)
-        return md5sum(first_buf)
+        return checksum
 
     def get_images(self, response, request, info):
         key = self.image_key(request.url)

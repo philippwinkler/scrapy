@@ -178,6 +178,32 @@ The following settings can be used to configure the cookie middleware:
 * :setting:`COOKIES_ENABLED`
 * :setting:`COOKIES_DEBUG`
 
+.. reqmeta:: cookiejar
+
+Multiple cookie sessions per spider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 0.15
+
+There is support for keeping multiple cookie sessions per spider by using the
+:reqmeta:`cookiejar` Request meta key. By default it uses a single cookie jar
+(session), but you can pass an identifier to use different ones.
+
+For example::
+
+    for i, url in enumerate(urls):
+        yield Request("http://www.example.com", meta={'cookiejar': i},
+            callback=self.parse_page)
+
+Keep in mind that the :reqmeta:`cookiejar` meta key is not "sticky". You need to keep
+passing it along on subsequent requests. For example::
+
+    def parse_page(self, response):
+        # do some processing
+        return Request("http://www.example.com/otherpage",
+            meta={'cookiejar': response.meta['cookiejar']},
+            callback=self.parse_other_page)
+
 .. setting:: COOKIES_ENABLED
 
 COOKIES_ENABLED

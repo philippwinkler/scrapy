@@ -11,16 +11,14 @@ This document describes how to install Scrapy on Linux, Windows and Mac OS X.
 Requirements
 ============
 
-* `Python`_ 2.5, 2.6, 2.7 (3.x is not yet supported)
+* `Python`_ 2.6, 2.7 (3.x is not yet supported)
 
-* `Twisted`_ 2.5.0, 8.0 or above (Windows users: you'll need to install
+* `Twisted`_ 8.0 or above (Windows users: you'll need to install
   `Zope.Interface`_ and maybe `pywin32`_ because of `this Twisted bug`_)
 
 * `w3lib`_
 
 * `lxml`_ or `libxml2`_ (if using `libxml2`_, version 2.6.28 or above is highly recommended)
-
-* `simplejson`_ (not required if using Python 2.6 or above)
 
 * `pyopenssl <http://pyopenssl.sourceforge.net>`_ (for HTTPS support. Optional,
   but highly recommended)
@@ -32,7 +30,7 @@ Install Python
 
 First, you need to install Python, if you haven't done so already.
 
-Scrapy works with Python 2.5, 2.6 or 2.7, which you can get at
+Scrapy works with Python 2.6 or 2.7, which you can get at
 http://www.python.org/download/
 
 .. seealso:: :ref:`faq-python-versions`
@@ -111,7 +109,7 @@ Debian or Ubuntu (9.04 or older)
 
 If you're running Debian Linux, run the following command as root::
 
-   apt-get install python-twisted python-libxml2 python-pyopenssl python-simplejson
+   apt-get install python-twisted python-lxmlxml python-pyopenssl
 
 Then::
 
@@ -124,7 +122,7 @@ Arch Linux
 
 If you are running Arch Linux, run the following command as root::
 
-   pacman -S twisted libxml2 pyopenssl python-simplejson
+   pacman -S twisted python-lxml pyopenssl
 
 Then::
 
@@ -178,7 +176,6 @@ There are two ways to install Scrapy in Windows:
 .. _lxml: http://codespeak.net/lxml/
 .. _libxml2: http://xmlsoft.org
 .. _pywin32: http://sourceforge.net/projects/pywin32/
-.. _simplejson: http://pypi.python.org/pypi/simplejson/
 .. _Zope.Interface: http://pypi.python.org/pypi/zope.interface#download
 .. _this Twisted bug: http://twistedmatrix.com/trac/ticket/3707
 .. _pip: http://pypi.python.org/pypi/pip

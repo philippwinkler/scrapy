@@ -4,14 +4,13 @@ based on different criterias.
 
 """
 
-from os.path import abspath, dirname, join
 from mimetypes import MimeTypes
+from pkgutil import get_data
 from cStringIO import StringIO
 
 from scrapy.http import Response
 from scrapy.utils.misc import load_object
 from scrapy.utils.python import isbinarytext
-from scrapy.utils.py26 import get_data
 from scrapy.conf import settings
 
 class ResponseTypes(object):
@@ -22,6 +21,7 @@ class ResponseTypes(object):
         'application/rdf+xml': 'scrapy.http.XmlResponse',
         'application/rss+xml': 'scrapy.http.XmlResponse',
         'application/xhtml+xml': 'scrapy.http.HtmlResponse',
+        'application/vnd.wap.xhtml+xml': 'scrapy.http.HtmlResponse',
         'application/xml': 'scrapy.http.XmlResponse',
         'application/json': 'scrapy.http.TextResponse',
         'application/javascript': 'scrapy.http.TextResponse',

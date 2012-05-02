@@ -3,8 +3,6 @@
 # It doesn't depend on setuptools, but if setuptools is available it'll use
 # some of its features, like package dependencies.
 
-from __future__ import with_statement
-
 from distutils.command.install_data import install_data
 from distutils.command.install import INSTALL_SCHEMES
 from subprocess import Popen, PIPE
@@ -82,14 +80,10 @@ scripts = ['bin/scrapy']
 if os.name == 'nt':
     scripts.append('extras/scrapy.bat')
 
-if os.environ.get('SCRAPY_VERSION_FROM_HG'):
-    rev = Popen(["hg", "tip", "--template", "{rev}"], stdout=PIPE).communicate()[0]
+if os.environ.get('SCRAPY_VERSION_FROM_GIT'):
+    v = Popen("git describe", shell=True, stdout=PIPE).communicate()[0]
     with open('scrapy/__init__.py', 'a') as f:
-        f.write("\n__version__ = '.'.join(map(str, version_info)) + '.%s'" % rev)
-elif os.environ.get('SCRAPY_VERSION_FROM_GIT'):
-    rev = Popen("git log --oneline | wc -l", shell=True, stdout=PIPE).communicate()[0]
-    with open('scrapy/__init__.py', 'a') as f:
-        f.write("\n__version__ = '.'.join(map(str, version_info)) + '.%s'" % rev.strip())
+        f.write("\n__version__ = '%s'" % v.strip())
 version = __import__('scrapy').__version__
 
 setup_args = {
@@ -108,7 +102,6 @@ setup_args = {
     'scripts': scripts,
     'classifiers': [
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: BSD License',
@@ -127,12 +120,6 @@ try:
 except ImportError:
     from distutils.core import setup
 else:
-    setup_args['install_requires'] = ['Twisted>=2.5', 'w3lib', 'pyOpenSSL']
-    if sys.version_info < (2, 6):
-        setup_args['install_requires'] += ['simplejson']
-    try:
-        import libxml2
-    except ImportError:
-        setup_args['install_requires'] += ['lxml']
+    setup_args['install_requires'] = ['Twisted>=8.0', 'w3lib>=1.1', 'lxml', 'pyOpenSSL']
  
 setup(**setup_args)

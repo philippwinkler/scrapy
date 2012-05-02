@@ -17,11 +17,11 @@ import sys, os
 from os.path import join, abspath, dirname
 
 BOT_NAME = 'scrapybot'
-BOT_VERSION = '1.0'
 
 CLOSESPIDER_TIMEOUT = 0
 CLOSESPIDER_PAGECOUNT = 0
 CLOSESPIDER_ITEMCOUNT = 0
+CLOSESPIDER_ERRORCOUNT = 0
 
 COMMANDS_MODULE = ''
 
@@ -64,6 +64,7 @@ DOWNLOAD_TIMEOUT = 180      # 3mins
 DOWNLOADER_DEBUG = False
 
 DOWNLOADER_HTTPCLIENTFACTORY = 'scrapy.core.downloader.webclient.ScrapyHTTPClientFactory'
+DOWNLOADER_CLIENTCONTEXTFACTORY = 'scrapy.core.downloader.webclient.ScrapyClientContextFactory'
 
 DOWNLOADER_MIDDLEWARES = {}
 
@@ -96,40 +97,6 @@ except KeyError:
         EDITOR = '%s -m idlelib.idle'
     else:
         EDITOR = 'vi'
-
-ENCODING_ALIASES = {}
-
-ENCODING_ALIASES_BASE = {
-    # gb2312 is superseded by gb18030
-    'gb2312': 'gb18030',
-    'chinese': 'gb18030',
-    'csiso58gb231280': 'gb18030',
-    'euc- cn': 'gb18030',
-    'euccn': 'gb18030',
-    'eucgb2312-cn': 'gb18030',
-    'gb2312-1980': 'gb18030',
-    'gb2312-80': 'gb18030',
-    'iso- ir-58': 'gb18030',
-    # gbk is superseded by gb18030
-    'gbk': 'gb18030',
-    '936': 'gb18030',
-    'cp936': 'gb18030',
-    'ms936': 'gb18030',
-    # latin_1 is a subset of cp1252
-    'latin_1': 'cp1252',
-    'iso-8859-1': 'cp1252',
-    'iso8859-1': 'cp1252',
-    '8859': 'cp1252',
-    'cp819': 'cp1252',
-    'latin': 'cp1252',
-    'latin1': 'cp1252',
-    'l1': 'cp1252',
-    # others
-    'zh-cn': 'gb18030',
-    'win-1251': 'cp1251',
-    'macintosh' : 'mac_roman',
-    'x-sjis': 'shift_jis',
-}
 
 EXTENSIONS = {}
 
@@ -202,7 +169,7 @@ MAIL_USER = None
 MEMDEBUG_ENABLED = False        # enable memory debugging
 MEMDEBUG_NOTIFY = []            # send memory debugging report by mail at engine shutdown
 
-MEMUSAGE_ENABLED = 1
+MEMUSAGE_ENABLED = False
 MEMUSAGE_LIMIT_MB = 0
 MEMUSAGE_NOTIFY_MAIL = []
 MEMUSAGE_REPORT = False
@@ -216,6 +183,8 @@ REDIRECT_ENABLED = True
 REDIRECT_MAX_METAREFRESH_DELAY = 100
 REDIRECT_MAX_TIMES = 20 # uses Firefox default setting
 REDIRECT_PRIORITY_ADJUST = +2
+
+REFERER_ENABLED = True
 
 RETRY_ENABLED = True
 RETRY_TIMES = 2 # initial response + 2 retries = 3 requests
@@ -246,8 +215,6 @@ SPIDER_MIDDLEWARES_BASE = {
 
 SPIDER_MODULES = []
 
-SQLITE_DB = 'scrapy.db'
-
 STATS_CLASS = 'scrapy.statscol.MemoryStatsCollector'
 STATS_ENABLED = True
 STATS_DUMP = True
@@ -258,7 +225,7 @@ TEMPLATES_DIR = abspath(join(dirname(__file__), '..', 'templates'))
 
 URLLENGTH_LIMIT = 2083
 
-USER_AGENT = '%s/%s' % (BOT_NAME, BOT_VERSION)
+USER_AGENT = 'Scrapy/0.15 (+http://scrapy.org)'
 
 TELNETCONSOLE_ENABLED = 1
 TELNETCONSOLE_PORT = [6023, 6073]

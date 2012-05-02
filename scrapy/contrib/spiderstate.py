@@ -1,9 +1,6 @@
-from __future__ import with_statement
-
 import os, cPickle as pickle
 
 from scrapy import signals
-from scrapy.exceptions import NotConfigured
 from scrapy.xlib.pydispatch import dispatcher
 
 class SpiderState(object):
