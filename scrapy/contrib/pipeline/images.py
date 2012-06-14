@@ -4,7 +4,7 @@ Images Pipeline
 See documentation in topics/images.rst
 """
 
-import os
+import os,stat
 import time
 import hashlib
 import urlparse
@@ -49,7 +49,7 @@ class FSImagesStore(object):
         absolute_path = self._get_filesystem_path(key)
         self._mkdir(os.path.dirname(absolute_path), info)
         image.save(absolute_path)
-        os.chmod(absolute_path,stat.S_IROTH)
+        #os.chmod(absolute_path,stat.S_IROTH)
 
     def stat_image(self, key, info):
         absolute_path = self._get_filesystem_path(key)
